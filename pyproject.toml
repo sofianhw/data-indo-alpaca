@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "indo-alpaca"
+version = "0.1.0"
+description = ""
+authors = ["sofian hadiwijaya <me.sofian.hadiwijaya@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = "^1.10.0"
+tqdm = "^4.66.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
