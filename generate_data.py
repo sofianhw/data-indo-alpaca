@@ -59,9 +59,11 @@ if __name__ == "__main__":
         help="the batch size to call the OpenAI."
     )
     args = parser.parse_args()
-    message_list = []
+    start = 0
     # alpaca_data_cleaned_archive = json.load(open("./alpaca_data_cleaned_archive.json"))
     alpaca_data = json.load(open("./alpaca_data.json"))
+    alpaca_data = alpaca_data[start:start+10000]
+    # alpaca_data = alpaca_data[0:10000]
     system_prompt = os.environ.get('SYSTEM_PROMPT')
 
 
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     pbar = tqdm(total=len(alpaca_data))
     # Try 10 messages firstly
-    while(i<3):
+    while(i>1):
     # while(i<len(message_list)):
         try:
             completion = client.chat.completions.create(
