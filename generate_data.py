@@ -113,4 +113,6 @@ if __name__ == "__main__":
     pbar.close()
 
     with open(f"{args.output_review_file}", "w", encoding='utf-8') as output_file:
-        json.dump(predictions, output_file)
+         for entry in predictions:
+             output_file.write(entry)
+             output_file.write(',\n')
