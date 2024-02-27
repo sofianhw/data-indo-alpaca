@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 import time
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from tqdm import tqdm
 
 # import shortuuid
@@ -16,32 +16,6 @@ logger = logging.getLogger(__name__)
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
-
-def parse_score(review):
-    try:
-        score = float(review.split('\n')[0])
-    except Exception as e:
-        if('score:' in review):
-            score = float(review.split('score:')[1].split('\n')[0])
-        elif('Score:' in review):
-            score = float(review.split('Score:')[1].strip('\n')[0])
-        else:           
-            logger.error(
-                f"{e}\nContent: {review}\n" "You must manually fix the score pair."
-            )
-            score = -1
-    
-    return score
-
-def find_error_items(alpaca_data,alpaca_data_cleaned_archive):
-    alpaca_data_cleaned_archive_str = set([str(d) for d in alpaca_data_cleaned_archive])
-    dirty_list = []
-    for i, x in enumerate(alpaca_data):
-        x = str(x)
-        if(x not in alpaca_data_cleaned_archive_str):
-            dirty_list.append(i)
-    return dirty_list
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GPT4 Distilation.")
@@ -58,11 +32,33 @@ if __name__ == "__main__":
         default=1,
         help="the batch size to call the OpenAI."
     )
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=0,
+        help="start index data",
+    )
+    parser.add_argument(
+        "--qty",
+        type=int,
+        default=10000,
+        help="total qty data",
+    )
+    parser.add_argument(
+        "--input",
+        type=str,
+        default="alpaca_data.json",
+        help="file dataset name",
+    )
     args = parser.parse_args()
-    start = 0
+    start = args.start
+    qty = start + args.qty
+    nama_file = args.input
     # alpaca_data_cleaned_archive = json.load(open("./alpaca_data_cleaned_archive.json"))
-    alpaca_data = json.load(open("./alpaca_data.json"))
-    alpaca_data = alpaca_data[start:start+10000]
+    # alpaca_data = json.load(open("./alpaca_data.json"))
+    alpaca_data = json.load(open(f"./{nama_file}"))
+    alpaca_data = alpaca_data[start:qty]
+    print(F"start {start} to end {qty}")
     # alpaca_data = alpaca_data[0:10000]
     system_prompt = os.environ.get('SYSTEM_PROMPT')
 
@@ -84,9 +80,12 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     pbar = tqdm(total=len(alpaca_data))
     # Try 10 messages firstly
-    while(i>1):
+    # while(i>1):
+    while(i < 2):
     # while(i<len(message_list)):
         try:
+            alpaca_data[i].pop('output', None)
+            print(alpaca_data[i])
             completion = client.chat.completions.create(
                 messages=[
                     {
@@ -100,12 +99,13 @@ if __name__ == "__main__":
                 ],
                 model="gpt-4-turbo-preview"
             )
-            predictions.append(completion.choices[0].message.content)
+            predictions.append(json.loads(completion.choices[0].message.content))
             i += 1
             wait_base = 10
             pbar.update(batch_size)
-        except:
+        except OpenAIError as e:
             retry += 1
+            print(f"Error: {e}")
             print("Batch error: ",i, i+10)
             print("retry number: ", retry)
             time.sleep(wait_base)
@@ -113,6 +113,4 @@ if __name__ == "__main__":
     pbar.close()
 
     with open(f"{args.output_review_file}", "w", encoding='utf-8') as output_file:
-        for entry in predictions:
-            output_file.write(entry)
-            output_file.write('\n')
+        json.dump(predictions, output_file)
