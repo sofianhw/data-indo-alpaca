@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 ],
                 model="gpt-4-turbo-preview"
             )
-            predictions.append(json.loads(completion.choices[0].message.content))
+            predictions.append(json.loads(completion.choices[0].message.content), strict=False)
             i += 1
             wait_base = 10
             pbar.update(batch_size)
