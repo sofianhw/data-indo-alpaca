@@ -80,12 +80,11 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     pbar = tqdm(total=len(alpaca_data))
     # Try 10 messages firstly
-    # while(i>1):
-    while(i < 2):
+    while(i >= 0):
+    # while(i < 2):
     # while(i<len(message_list)):
         try:
             alpaca_data[i].pop('output', None)
-            print(alpaca_data[i])
             completion = client.chat.completions.create(
                 messages=[
                     {
@@ -110,6 +109,7 @@ if __name__ == "__main__":
             print("retry number: ", retry)
             time.sleep(wait_base)
             wait_base = wait_base*2
+
     pbar.close()
 
     with open(f"{args.output_review_file}", "w", encoding='utf-8') as output_file:
