@@ -80,8 +80,8 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     pbar = tqdm(total=len(alpaca_data))
     # Try 10 messages firstly
-    while(i >= 0):
-    # while(i < 2):
+    # while(i >= 0):
+    while(i < 2):
     # while(i<len(message_list)):
         try:
             alpaca_data[i].pop('output', None)
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 ],
                 model="gpt-4-turbo-preview"
             )
-            predictions.append(json.loads(completion.choices[0].message.content), strict=False)
+            predictions.append(completion.choices[0].message.content)
             i += 1
             wait_base = 10
             pbar.update(batch_size)
